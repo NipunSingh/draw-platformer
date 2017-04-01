@@ -1,0 +1,8 @@
+<h1> Upload file </h1>
+
+<form  enctype="multipart/form-data" action="/cv/upload/" method="post">
+    {% csrf_token %}
+    {{ form }}
+    <input type="submit" value="Submit" />
+</form>
+
