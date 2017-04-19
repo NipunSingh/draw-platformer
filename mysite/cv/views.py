@@ -3,9 +3,6 @@ from django.http import HttpResponse, HttpResponseRedirect
 from .forms import UploadFileForm
 from cv.models import GameMap
 
-def index(request):
-    return HttpResponse("Hello, world. You're at the CV index.")
-
 def handle_uploaded_file(f):
     with open('input.jpg', 'wb+') as destination:
         for chunk in f.chunks():
@@ -25,7 +22,7 @@ def upload_file(request):
                 new_game_map = GameMap.objects.create(title=map_title,map=file_contents)
                 new_game_map.save()
 	    	#return render(request, 'game.html', {'map': file_contents})
-            return HttpResponseRedirect("/cv/game/" + map_title)
+            return HttpResponseRedirect("/game/" + map_title)
     else:
         form = UploadFileForm()
     return render(request, 'index.html', {'form': form})

@@ -1,7 +1,6 @@
 # USAGE
 # python scan.py --image images/page.jpg 
 
-# import the necessary packages
 from pyimagesearch.transform import four_point_transform
 from pyimagesearch import imutils
 from skimage.filters import threshold_adaptive
@@ -9,181 +8,128 @@ from skimage.transform import pyramid_reduce
 import numpy as np
 import argparse
 import cv2
+import json
 
-# construct the argument parser and parse the arguments
-ap = argparse.ArgumentParser()
-ap.add_argument("-i", "--image", required = True,
-	help = "Path to the image to be scanned")
-args = vars(ap.parse_args())
+def get_image():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("-i", "--image", required=True, help="Path to the image to be scanned")
+    args = vars(ap.parse_args())
+    image = cv2.imread(args["image"])
+    ratio = image.shape[0] / 500.0
+    orig_img = image.copy()
+    #TODO: Check image orientation and rotate if neccessary with game_map = np.rot90(game_map, k=3)
+    resized_img = imutils.resize(image, height=500)
+    return (orig_img, resized_img, ratio)
 
-# load the image and compute the ratio of the old height
-# to the new height, clone it, and resize it
-image = cv2.imread(args["image"])
-ratio = image.shape[0] / 500.0
-orig = image.copy()
-image = imutils.resize(image, height = 500)
+def get_edges(image):
+    gray_img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    gray_img = cv2.GaussianBlur(image, (5, 5), 0)
+    edged_img = cv2.Canny(gray_img, 75, 200)
+    return edged_img
 
-# convert the image to grayscale, blur it, and find edges
-# in the image
-gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-gray = cv2.GaussianBlur(image, (5, 5), 0)
+def get_largest_contour(edged_img):
+    # find the contours in the edged image, keeping only the largest ones, and initialize the screen contour
+    (_, contours, _) = cv2.findContours(edged_img.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    contours = sorted(contours, key=cv2.contourArea, reverse=True)[:5]
 
-edged = cv2.Canny(gray, 75, 200)
+    # loop over the contours
+    for countour in contours:
+        # approximate the contour
+        peri = cv2.arcLength(countour, True)
+        approx = cv2.approxPolyDP(countour, 0.02 * peri, True)
 
-# show the original image and the edge detected image
-#print "STEP 1: Edge Detection"
+        # if our approximated contour has four points, then we
+        # can assume that we have found our screen
+        if len(approx) == 4:
+            screen_contour = approx
+            break
+    return screen_contour
 
-#cv2.imshow("Image", image)
-#cv2.imshow("Edged", edged)
-#cv2.waitKey(0)
-#cv2.destroyAllWindows()
+def isolate_paper(orig_img, screen_contour, ratio):
+    paper_img = four_point_transform(orig_img, screen_contour.reshape(4, 2) * ratio)
+    return paper_img
 
-# find the contours in the edged image, keeping only the
-# largest ones, and initialize the screen contour
-# (cnts, _) = cv2.findContours(edged.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
-(_, cnts, _) = cv2.findContours(edged.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-cnts = sorted(cnts, key = cv2.contourArea, reverse = True)[:5]
+def filter_colors(paper_img):
+    resized_img = imutils.resize(paper_img, height=650)
+    hsv_img = cv2.cvtColor(resized_img, cv2.COLOR_BGR2HSV)
+    return (resized_img, hsv_img)
 
-# loop over the contours
-for c in cnts:
-	# approximate the contour
-	peri = cv2.arcLength(c, True)
-	approx = cv2.approxPolyDP(c, 0.02 * peri, True)
+def get_blue_img(hsv):
+    # define range of blue color in HSV
+    lower_blue = np.array([100, 50, 50])
+    upper_blue = np.array([140, 255, 255])
+    mask = cv2.inRange(hsv, lower_blue, upper_blue)
+    blue_img = cv2.bitwise_and(hsv, hsv, mask=mask)
+    return blue_img
 
-	# if our approximated contour has four points, then we
-	# can assume that we have found our screen
-	if len(approx) == 4:
-		screenCnt = approx
-		break
+def get_red_img(hsv):
+    red = np.uint8([[[0, 0, 255]]])
+    hsv_red = cv2.cvtColor(red, cv2.COLOR_BGR2HSV)  # (0,255,255)
+    lower_red = np.array([0, 50, 50])  # also parses as red
+    upper_red = np.array([25, 255, 255])  # also parses as red
+    mask = cv2.inRange(hsv, lower_red, upper_red)
+    red_img = cv2.bitwise_and(hsv, hsv, mask=mask)
+    return red_img
 
-# show the contour (outline) of the piece of paper
-#print "STEP 2: Find contours of paper"
-cv2.drawContours(image, [screenCnt], -1, (0, 255, 0), 2)
-#cv2.imshow("Outline", image)
-#cv2.waitKey(0)
-#cv2.destroyAllWindows()
+def get_green_img(hsv):
+    green = np.uint8([[[0, 255, 0]]])
+    hsv_green = cv2.cvtColor(green, cv2.COLOR_BGR2HSV)
+    hsv_green  # (60, 255, 255)
+    lower_green = np.array([40, 30, 30])
+    upper_green = np.array([85, 255, 255])
+    mask = cv2.inRange(hsv, lower_green, upper_green)
+    green_img = cv2.bitwise_and(hsv, hsv, mask=mask)
+    return green_img
 
-# apply the four point transform to obtain a top-down
-# view of the original image
-warped = four_point_transform(orig, screenCnt.reshape(4, 2) * ratio)
-#cv2.imshow("Color Wrapped", imutils.resize(warped, height = 650))
-#cv2.waitKey(0)
+def get_pink_img(hsv):
+    lower_pink = np.array([140, 30, 30])
+    upper_pink = np.array([175, 255, 255])
+    mask = cv2.inRange(hsv, lower_pink, upper_pink)
+    pink_img = cv2.bitwise_and(hsv, hsv, mask=mask)
+    return pink_img
 
+def get_black_img(hsv):
+    # Black Image
+    black_img = hsv.copy()
+    nrows = hsv.shape[0]
+    ncols = hsv.shape[1]
+    for i in range(nrows):
+        for j in range(ncols):
+            if (hsv[i][j][2] < 125):
+                black_img[i][j] = [0, 0, 0]  # set black
+            else:
+                black_img[i][j] = [0, 0, 255]  # set white
+    return black_img
 
-resized_image = imutils.resize(warped, height= 650);
+def img_to_game_map(paper_img, resized_image, green_img, black_img, red_img, blue_img, pink_img):
+    # convert the paper_img image to grayscale, then threshold it
+    paper_img = cv2.cvtColor(resized_image, cv2.COLOR_BGR2GRAY)
+    paper_img = threshold_adaptive(paper_img, 251, offset=10)
+    paper_img = paper_img.astype("uint8") * 255
+    nrows = paper_img.shape[0]
+    ncols = paper_img.shape[1]
+    game_map = np.zeros((nrows, ncols))
+    for i in range(nrows):
+        for j in range(ncols):
+            if (paper_img[i][j] == 255):
+                game_map[i][j] = 1 # background block
+            else:
+                if (green_img[i][j][2] > 3):
+                    game_map[i][j] = 12 # points block
+                elif (black_img[i][j][2] == 0):
+                    game_map[i][j] = 2 # wall block
+                elif (red_img[i][j][2] > 3):
+                    game_map[i][j] = 9 # lava block
+                elif (blue_img[i][j][2] > 3):
+                    game_map[i][j] = 8 # endpoint block
+                elif (pink_img[i][j][2] > 5):
+                    game_map[i][j] = 5 # bouncy block
+                else:
+                    game_map[i][j] = 2 # if something there but none of the above colors default to wall block (black)
+    return game_map
 
-hsv = cv2.cvtColor(resized_image, cv2.COLOR_BGR2HSV)
-
-# define range of blue color in HSV
-lower_blue = np.array([100,50,50])
-upper_blue = np.array([140,255,255])
- # Threshold the HSV image to get only blue colors
-mask = cv2.inRange(hsv, lower_blue, upper_blue)
-# Bitwise-AND mask and original image
-blue_res = cv2.bitwise_and(hsv, hsv, mask= mask)
-#cv2.imshow("Blue Image", blue_res)
-#cv2.waitKey(0)
-
-
-red = np.uint8([[[0, 0, 255]]])
-hsv_red = cv2.cvtColor(red, cv2.COLOR_BGR2HSV) # (0,255,255)
-
-lower_red = np.array([0,50,50]) # also parses as red
-upper_red = np.array([25,255,255]) #also parses as red
- # Threshold the HSV image to get only blue colors
-mask = cv2.inRange(hsv, lower_red, upper_red)
-# Bitwise-AND mask and original image
-red_res = cv2.bitwise_and(hsv, hsv, mask= mask)
-#cv2.imshow("Red Image", red_res)
-#cv2.waitKey(0)
-
-
-#new_lower_red = np.array([160,50,50]) # also parses as red
-#new_upper_red = np.array([180,255,255]) #also parses as red
- # Threshold the HSV image to get only blue colors
-#new_red_mask = cv2.inRange(hsv, lower_red, upper_red)
-#combined_mask = cv2.bitwise_or(mask, new_red_mask)
-# Bitwise-AND mask and original image
-#new_red_res = cv2.bitwise_and(hsv, hsv, mask= combined_mask)
-#cv2.imshow("Red Try 2 Image", red_res)
-#cv2.waitKey(0)
-
-green = np.uint8([[[0, 255, 0]]])
-hsv_green = cv2.cvtColor(green, cv2.COLOR_BGR2HSV)
-hsv_green # (60, 255, 255)
-
-lower_green = np.array([40,30,30])
-upper_green = np.array([85,255,255])
-mask = cv2.inRange(hsv, lower_green, upper_green)
-green_res = cv2.bitwise_and(hsv, hsv, mask= mask)
-#cv2.imshow("Green Image", green_res)
-#cv2.waitKey(0)
-
-
-lower_pink = np.array([140,30,30])
-upper_pink = np.array([175,255,255])
-mask = cv2.inRange(hsv, lower_pink, upper_pink)
-pink_res = cv2.bitwise_and(hsv, hsv, mask= mask)
-#cv2.imshow("Pink Image", pink_res)
-#cv2.waitKey(0)
-
-
-# Black Image
-black_image = hsv.copy()
-nrows = hsv.shape[0]
-ncols = hsv.shape[1]
-for i in range(nrows):
-	for j in range(ncols):
-		if (hsv[i][j][2] < 125):
-			black_image[i][j] = [0,0,0] #set black
-		else:
-			black_image[i][j] = [0,0,255] #set white
-
-#cv2.imshow("Black Image", black_image)
-#cv2.waitKey(0)
-
-
-
-# convert the warped image to grayscale, then threshold it
-# to give it that 'black and white' paper effect
-warped = cv2.cvtColor(resized_image, cv2.COLOR_BGR2GRAY)
-warped = threshold_adaptive(warped, 251, offset = 10)
-warped = warped.astype("uint8") * 255
-
-
-nrows = warped.shape[0]
-ncols = warped.shape[1]
-threshold_colors = np.zeros((nrows, ncols))
-
-# switched rows / cols
-for i in range(nrows):
-	for j in range(ncols):
-		if (warped[i][j] == 255): #background
-			threshold_colors[i][j] = 1 #empty block
-		else:
-			if (green_res[i][j][2] > 3):
-				threshold_colors[i][j] = 12
-			elif (black_image[i][j][2] == 0): #black
-				threshold_colors[i][j] = 2
-			elif (red_res[i][j][2] > 3):
-				threshold_colors[i][j] = 9
-			elif (blue_res[i][j][2] > 3):
-				threshold_colors[i][j] = 8
-
-			elif (pink_res[i][j][2] > 5):
-				threshold_colors[i][j] = 5 #pink
-			else:
-				threshold_colors[i][j] = 2
-
-
-#rotated_image = np.rot90(threshold_colors, k=3)
-rotated_image = threshold_colors
-
-#cv2.waitKey(0)
-
-# 650 / 44 = 14.77, 498 / 36 = 13.8333
 import operator
-def translate_image(img, output_width, output_height): # (img, width=44, height=36)
+def get_rescaled_game_map(img, output_width, output_height): # (img, width=44, height=36) # 650 / 44 = 14.77, 498 / 36 = 13.8333
 	result = np.zeros((output_height, output_width))
 	nrows = img.shape[0] # 498
 	ncols = img.shape[1] # 650
@@ -202,16 +148,9 @@ def translate_image(img, output_width, output_height): # (img, width=44, height=
 						votes[1] = 0
 						best_color = max(votes.iteritems(), key=operator.itemgetter(1))[0]
 			result[outter_i][outter_j] = best_color
-	return result
+	return np.rint(result).astype(int) #casts float into int
 
-resized_image = translate_image(rotated_image, 44, 36)
-
-# downsample
-#resized_image = cv2.resize(rotated_image, (44,36))
-np.set_printoptions(threshold=np.nan)
-rounded_image = np.rint(resized_image).astype(int)
-
-
+""" removes multiple instances of coins next to each other, finishing points near each other """
 def eliminate_dups(img):
 	nrows = img.shape[0]
 	ncols = img.shape[1]
@@ -249,33 +188,46 @@ def eliminate_dups(img):
 			elif (img[i][j] == 8):
 				suppress_neighbhor(img, i, j, 8)
 	
-
-eliminate_dups(rounded_image)
-
 def add_border(img):
-	nrows = img.shape[0]
-	ncols = img.shape[1]
-	for j in range(ncols):
-		img[nrows-1][j] = 2
-		img[0][j] = 2
-	for i in range(nrows):
-		img[i][0] = 2
-		img[i][ncols-1] = 2
+    nrows = img.shape[0]
+    ncols = img.shape[1]
+    for j in range(ncols):
+        img[nrows-1][j] = 2
+        img[0][j] = 2
+    for i in range(nrows):
+        img[i][0] = 2
+        img[i][ncols-1] = 2
 
-add_border(rounded_image)
+def game_map_to_string(img):
+    game_map_text = json.dumps(img.tolist())
+    return game_map_text
 
-import json
-print json.dumps(rounded_image.tolist())
+def test(game_map_text):
+    assert game_map_text == '[[2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2], [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2], [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 5, 5, 5, 9, 9, 9, 9, 9, 9, 9, 9, 5, 5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2], [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 5, 5, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2], [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 1, 1, 1, 1, 1, 1, 1, 1, 2], [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 5, 9, 9, 9, 9, 9, 9, 9, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 9, 9, 9, 9, 9, 1, 1, 1, 1, 1, 1, 1, 2], [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 5, 9, 9, 9, 9, 9, 9, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 9, 9, 9, 1, 1, 1, 1, 1, 1, 2], [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 9, 9, 9, 9, 9, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 9, 9, 1, 1, 1, 1, 1, 1, 2], [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 9, 9, 9, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 5, 5, 5, 5, 1, 1, 1, 1, 9, 9, 1, 1, 1, 1, 1, 1, 2], [2, 1, 1, 1, 1, 1, 1, 1, 1, 9, 9, 5, 1, 1, 1, 5, 5, 5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 5, 5, 5, 5, 1, 1, 1, 1, 1, 9, 9, 1, 1, 1, 1, 1, 2], [2, 1, 1, 1, 1, 1, 1, 1, 9, 9, 5, 1, 1, 1, 5, 5, 5, 5, 5, 1, 1, 1, 1, 1, 1, 1, 5, 5, 12, 1, 5, 5, 1, 1, 1, 1, 9, 9, 1, 1, 1, 1, 1, 2], [2, 1, 1, 1, 1, 1, 1, 1, 9, 9, 5, 1, 1, 5, 5, 12, 1, 1, 5, 1, 1, 1, 1, 1, 1, 1, 5, 5, 1, 1, 5, 5, 1, 1, 1, 1, 9, 9, 1, 1, 1, 1, 1, 2], [2, 1, 1, 1, 1, 1, 1, 9, 9, 5, 1, 1, 1, 5, 5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 5, 9, 9, 1, 1, 1, 1, 2], [2, 1, 1, 1, 1, 1, 1, 9, 9, 5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 5, 9, 9, 1, 1, 1, 1, 2], [2, 1, 1, 1, 1, 1, 1, 9, 5, 5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 5, 9, 9, 1, 1, 1, 1, 2], [2, 1, 1, 1, 1, 1, 9, 9, 5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 5, 9, 9, 1, 1, 1, 1, 2], [2, 1, 1, 1, 1, 1, 9, 9, 5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 5, 9, 9, 1, 1, 1, 1, 2], [2, 1, 1, 1, 1, 1, 9, 9, 5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 5, 9, 9, 1, 1, 1, 1, 2], [2, 1, 1, 1, 1, 1, 9, 9, 5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 5, 1, 1, 1, 1, 1, 1, 2], [2, 1, 1, 1, 1, 1, 9, 9, 5, 5, 1, 1, 1, 1, 5, 5, 1, 1, 1, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 5, 5, 5, 1, 1, 5, 5, 1, 1, 1, 1, 1, 1, 2], [2, 1, 1, 1, 1, 1, 1, 1, 5, 5, 1, 1, 1, 1, 5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 5, 5, 1, 8, 1, 5, 5, 1, 1, 1, 1, 1, 1, 2], [2, 1, 1, 1, 1, 1, 1, 1, 5, 5, 1, 1, 1, 1, 5, 5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 5, 5, 1, 1, 1, 5, 5, 1, 1, 1, 1, 1, 1, 2], [2, 1, 1, 1, 1, 1, 1, 1, 5, 5, 1, 1, 1, 1, 5, 5, 5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 5, 5, 1, 1, 1, 1, 5, 5, 1, 1, 1, 1, 1, 1, 2], [2, 1, 1, 1, 1, 1, 1, 1, 1, 5, 5, 1, 1, 1, 1, 5, 5, 5, 5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 5, 5, 5, 1, 1, 1, 5, 5, 1, 1, 1, 1, 1, 1, 1, 2], [2, 1, 1, 1, 1, 1, 1, 1, 1, 5, 5, 1, 1, 1, 1, 1, 5, 5, 5, 5, 5, 1, 1, 1, 1, 1, 5, 5, 5, 5, 1, 1, 1, 1, 5, 5, 1, 1, 1, 1, 1, 1, 1, 2], [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 5, 5, 1, 1, 1, 1, 1, 1, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 1, 1, 1, 1, 1, 5, 5, 1, 1, 1, 1, 1, 1, 1, 1, 2], [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 5, 5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 5, 5, 5, 5, 1, 1, 1, 1, 1, 1, 1, 5, 5, 1, 1, 1, 1, 1, 1, 1, 1, 2], [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 5, 5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 5, 5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2], [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 5, 5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2], [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 9, 9, 9, 9, 9, 9, 1, 1, 1, 1, 1, 1, 1, 1, 1, 9, 9, 5, 5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2], [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2], [2, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2], [2, 1, 1, 1, 1, 2, 2, 1, 1, 2, 1, 1, 1, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2], [2, 1, 1, 1, 1, 2, 2, 2, 2, 2, 1, 1, 1, 1, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2], [2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2], [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]]'
 
+def scan_driver():
+    orig_img, image, ratio = get_image() # from command line gets path of image to process and loads it into cv image object
+    edged_img = get_edges(image) # greyscales image, then finds edges with Canny edge detector
+    screen_countour = get_largest_contour(edged_img) # finds the largest contour in the image (aka finds largest shape which should be the piece of paper)
+    paper_img = isolate_paper(orig_img, screen_countour, ratio) # using locations of largest contours, applies a 4-point-transform to remove background and return the image object
+    resized_image, hsv = filter_colors(paper_img) # convert image to HSV scale for color-filtering
+    
+    # filters image down to 5 colors (white, black, green, blue, red)
+    blue_img = get_blue_img(hsv)
+    red_img = get_red_img(hsv)
+    green_img = get_green_img(hsv)
+    pink_img = get_pink_img(hsv)
+    black_img = get_black_img(hsv)
 
+    game_map = img_to_game_map(paper_img, resized_image, green_img, black_img, red_img, blue_img, pink_img) # makes 2d array representing map used by JS game engine
+    rescaled_game_map = get_rescaled_game_map(game_map, output_width=44, output_height=36) # resizes it to desired end game map size
+    eliminate_dups(rescaled_game_map) # removes multiple coins/exit points clustered nearby each other
+    add_border(rescaled_game_map) # adds wall border around map
+    game_map_text = game_map_to_string(rescaled_game_map) # gets string representation of the game map
+    return game_map_text
 
-
-
-
-# show the original and scanned images
-#print "STEP 3: Apply perspective transform"
-#cv2.imshow("Original", imutils.resize(orig, height = 650))
-#cv2.imshow("Scanned", imutils.resize(warped, height = 650))
-#cv2.waitKey(0)
-
+if __name__ == '__main__':
+    game_map_text = scan_driver()
+    print game_map_text
+    test(game_map_text)
 
