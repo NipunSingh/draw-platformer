@@ -771,4 +771,30 @@ var Loop = function() {
 Loop();
     </script>
 
+{% csrf_token %}
+
+<script type="text/javascript">
+// using jQuery
+var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
+
+    function csrfSafeMethod(method) {
+    return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+}
+$.ajaxSetup({
+    beforeSend: function(xhr, settings) {
+        if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+            xhr.setRequestHeader("X-CSRFToken", csrftoken);
+        }
+    }
+});
+    $.post("/game/{{title}}/updatescore/",
+    {
+        score: "50" // get new score
+    },
+    function(data, status){
+        alert("Data: " + data + "\nStatus: " + status);
+    });
+</script>
+
+
 </html>
