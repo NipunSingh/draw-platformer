@@ -36,12 +36,15 @@ def game(request, name):
 
 def update_score(request, name):
     if request.method == 'POST':
-        debug_string = "<h1> Trying to update score for game " + name + " with score: " + request.POST.get("score") + " </h1>"
-        print debug_string
+        high_score = int(request.POST.get("score"))
+        debug_string = "Trying to update score for game " + name + " with score: " + request.POST.get("score")
+        game_obj = GameMap.objects.filter(title=name)[0]
+        if (game_obj.high_score > high_score):
+            game_obj.high_score = high_score
+            game_obj.save()
         return HttpResponse(debug_string)
     else:
-        #return HttpResponseRedirect("/game/" + name)
-        return HttpResponse("send post pls")
+        return HttpResponse("Requires POST request to update scores")
 
 
 

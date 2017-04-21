@@ -144,7 +144,7 @@ THE SOFTWARE.
 var mainSong = new Audio("/static/underworld.mp3"); // buffers automatically when created
 mainSong.play();
 
-        
+
 var savedMap = {
 
     coin_count: 0,
@@ -225,7 +225,7 @@ var savedMap = {
         change_colour: 'game.player.colour = "#"+(Math.random()*0xFFFFFF<<0).toString(16);',
         /* you could load a new map variable here */
         boing: 'var boing = new Audio("jump.wav");boing.play();',
-        next_level: 'if(map.coin_count >= map.total_coins){alert("Yay! You won in " + totalSeconds + " seconds! Reloading map.");location.reload();}else{alert("You have not finished yet!!! You need " + (map.total_coins - map.coin_count) + " more coins to win!");}this.key.left  = false;this.key.up    = false;this.key.right = false;this.key.down = false;',
+        next_level: 'if(map.coin_count >= map.total_coins){alert("Yay! You won in " + totalSeconds + " seconds! Reloading map."); sendHighScore(totalSeconds); location.reload();} else{alert("You have not finished yet!!! You need " + (map.total_coins - map.coin_count) + " more coins to win!");}this.key.left  = false;this.key.up    = false;this.key.right = false;this.key.down = false;',
         death: 'alert("You died!");location.reload();',
         unlock: 'game.current_map.keys[10].solid = 0;game.current_map.keys[10].colour = "#888";',
         add_coin: 'var audio = new Audio("/static/coin.wav");audio.play();map.player.x = (this.player.loc.x) / (this.tile_size);map.player.y = (this.player.loc.y) / (this.tile_size);if(this.current_map.data[Math.round(map.player.y)][Math.round(map.player.x)].id == 12){this.current_map.data[Math.round(map.player.y)][Math.round(map.player.x)] = 1;}if(this.current_map.data[Math.round(map.player.y)-1][Math.round(map.player.x)].id == 12){this.current_map.data[Math.round(map.player.y)-1][Math.round(map.player.x)] = 1;}if(this.current_map.data[Math.round(map.player.y)][Math.round(map.player.x)-1].id == 12){this.current_map.data[Math.round(map.player.y)][Math.round(map.player.x)-1] = 1;}if(this.current_map.data[Math.round(map.player.y)+1][Math.round(map.player.x)].id == 12){this.current_map.data[Math.round(map.player.y)+1][Math.round(map.player.x)] = 1;}if(this.current_map.data[Math.round(map.player.y)][Math.round(map.player.x)+1].id == 12){this.current_map.data[Math.round(map.player.y)][Math.round(map.player.x)+1] = 1;}map.coin_count++;document.getElementById("points").innerHTML = map.coin_count + "/" + map.total_coins;game.load_map(map);'
@@ -771,30 +771,26 @@ var Loop = function() {
 Loop();
     </script>
 
-{% csrf_token %}
+    <script>
+        function sendHighScore(score) {
+            var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
 
-<script type="text/javascript">
-// using jQuery
-var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
-
-    function csrfSafeMethod(method) {
-    return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
-}
-$.ajaxSetup({
-    beforeSend: function(xhr, settings) {
-        if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
-            xhr.setRequestHeader("X-CSRFToken", csrftoken);
+            function csrfSafeMethod(method) {
+                return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+            }
+            $.ajaxSetup({
+                beforeSend: function(xhr, settings) {
+                    if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                        xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                    }
+                }
+            });
+            $.post("/game/{{title}}/updatescore/", {
+                    score: score
+                },
+                function(data, status) {
+                });
         }
-    }
-});
-    $.post("/game/{{title}}/updatescore/",
-    {
-        score: "50" // get new score
-    },
-    function(data, status){
-        alert("Data: " + data + "\nStatus: " + status);
-    });
-</script>
-
-
+    </script>
+    {% csrf_token %}
 </html>
