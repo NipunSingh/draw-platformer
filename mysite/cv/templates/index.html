@@ -59,6 +59,28 @@
             margin: auto;
             padding: 10px;
         }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 100%;
+            background: rgba( 255, 255, 255, .8) url('/static/img/spinner.gif') 50% 50% no-repeat;
+        }
+        /* When the body has the loading class, we turn
+   the scrollbar off with overflow:hidden */
+
+        body.loading {
+            overflow: hidden;
+        }
+        /* Anytime the body has the loading class, our
+   modal element will be visible */
+
+        body.loading .modal {
+            display: block;
+        }
     </style>
 </head>
 
@@ -110,7 +132,7 @@
                 <div class="col-lg-8 col-lg-offset-2 text-center" style="color: white">
                     <h2 class="section-heading">Upload A Map:</h2>
                     <hr class="light">
-                    <form  class="form" enctype="multipart/form-data" action="/cv/upload/" method="post">
+                    <form  id="file-upload-form" class="form" enctype="multipart/form-data" action="/cv/upload/" method="post">
                     {% csrf_token %}
                         <div class="fieldWrapper form-group">
                             {{ form.title.errors }}
@@ -123,7 +145,7 @@
     {{ form.file }}
 </div>
 
-                <input type="submit" value="Submit" />
+                <input type="submit" value="Submit" onclick="$body = $('body'); $body.addClass('loading'); document.getElementById('file-upload-form').submit();" />
                 </form>
 
                 </div>
@@ -240,6 +262,7 @@
 
     <!-- Theme JavaScript -->
     <script src="/static/js/creative.min.js"></script>
+<div class="modal"><!-- Place at bottom of page --></div>
 
 </body>
 
