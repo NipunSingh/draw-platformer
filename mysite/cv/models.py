@@ -7,4 +7,4 @@ from django.db import models
 class GameMap(models.Model):
     title = models.CharField(max_length=200)
     map = models.TextField()
-    high_score = models.IntegerField(default=120)
+    high_score = models.IntegerField(default=9999)

@@ -21,7 +21,7 @@ def upload_file(request):
             	file_contents = f.read()
                 new_game_map = GameMap.objects.create(title=map_title,map=file_contents)
                 new_game_map.save()
-            return HttpResponseRedirect("/game/" + map_title)
+            return HttpResponseRedirect("/game/" + map_title + "/")
     else:
         form = UploadFileForm()
     return render(request, 'index.html', {'form': form})
@@ -30,7 +30,10 @@ def game(request, name):
     game_obj = GameMap.objects.filter(title=name)
     if game_obj:
         game_obj = game_obj[0]
-        return render(request, 'play.html', {'map': game_obj.map, 'high_score': game_obj.high_score, 'title': game_obj.title})
+        high_score_string = game_obj.high_score
+        if (game_obj.high_score == 9999): # defualt value
+            high_score_string = "Level never beaten!"
+        return render(request, 'play.html', {'map': game_obj.map, 'high_score': high_score_string, 'title': game_obj.title})
     else:
         return HttpResponse("<h1> Game Page Does Not Exist With Name: </h1>" + name)
 
