@@ -14,11 +14,20 @@
 </head>
 
 <body id="page-top">
-                <ul>
+                <table>
+                    <tr>
+                        <th>Title</th>
+                        <th>High Score</th>
+                        <th>Upvotes</th>
+                    </tr>
                 {% for map in recent_maps %}
-                    <li> Title: {{map.title}}, Score: {{map.high_score}}</li>
+                    <tr>
+                        <td>{{map.title}}</td>
+                        <td>{{map.high_score}}</td>
+                        <td>{{map.votes}}</td>
+                    </tr>
                 {% endfor %}
-                </ul>
+                </table>
 </body>
 
 </html>

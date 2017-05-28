@@ -49,6 +49,15 @@ def update_score(request, name):
     else:
         return HttpResponse("Requires POST request to update scores")
 
+def update_votes(request, name):
+    if request.method == 'POST':
+        game_obj = GameMap.objects.filter(title=name)[0]
+        game_obj.votes = game_obj.votes + 1
+        game_obj.save()
+        return HttpResponse("Updated Votes")
+    else:
+        return HttpResponse("Requires POST request to update votes")
+
 def discover(request):
     recent_maps = GameMap.objects.order_by('-created')[:15]
     return render(request, 'discover.html', {'recent_maps': recent_maps})

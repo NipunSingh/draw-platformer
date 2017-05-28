@@ -9,3 +9,4 @@ class GameMap(models.Model):
     map = models.TextField()
     high_score = models.IntegerField(default=9999)
     created = models.DateTimeField(auto_now_add=True, null=True)
+    votes = models.IntegerField(default=1)
