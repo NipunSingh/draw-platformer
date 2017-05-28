@@ -49,5 +49,9 @@ def update_score(request, name):
     else:
         return HttpResponse("Requires POST request to update scores")
 
+def discover(request):
+    recent_maps = GameMap.objects.order_by('-created')[:15]
+    return render(request, 'discover.html', {'recent_maps': recent_maps})
+
 
 
