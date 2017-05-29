@@ -15,11 +15,12 @@ def upload_file(request):
     if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)
         if form.is_valid():
-            handle_uploaded_file(request.FILES['file'])
+            input_img = request.FILES['file']
+            handle_uploaded_file(input_img)
             map_title = request.POST['title']
             with open('test_output.txt', 'r') as f:
             	file_contents = f.read()
-                new_game_map = GameMap.objects.create(title=map_title,map=file_contents)
+                new_game_map = GameMap.objects.create(title=map_title,map=file_contents,input_img=input_img)
                 new_game_map.save()
             return HttpResponseRedirect("/game/" + map_title + "/")
     else:
@@ -49,7 +50,7 @@ def update_score(request, name):
     else:
         return HttpResponse("Requires POST request to update scores")
 
-def update_votes(request, name):
+def upvote(request, name):
     if request.method == 'POST':
         game_obj = GameMap.objects.filter(title=name)[0]
         game_obj.votes = game_obj.votes + 1
