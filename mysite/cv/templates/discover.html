@@ -19,7 +19,8 @@
                         <th>Title</th>
                         <th>High Score</th>
                         <th>Upvotes</th>
-                        <th>Button</th>
+                        <th>Upvote Button</th>
+                        <th>Downvote Button</th>
                         <th>Image</th>
                     </tr>
                 {% for map in recent_maps %}
@@ -27,8 +28,9 @@
                         <td>{{map.title}}</td>
                         <td>{{map.high_score}}</td>
                         <td>{{map.votes}}</td>
-                        <td><button onclick="upvote('{{map.title}}')">Upvote</button></td>
-                        <td><img src="{{ map.input_img.url }}" height="200" width="200"></td>
+                        <td><button onclick="vote('{{map.title}}', true)">Upvote</button></td>
+                        <td><button onclick="vote('{{map.title}}', false)">Downvote</button></td>
+                        <td><img src="{{ map.input_img.url }}" height="200" width="250"></td>
                     </tr>
                 {% endfor %}
                 </table>
@@ -36,8 +38,9 @@
 
     <script src="/static/vendor/jquery/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/js-cookie/2.1.4/js.cookie.min.js"></script>
+
     <script>
-        function upvote(map_name) {
+        function vote(map_name, is_up_vote) {
             var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
 
             function csrfSafeMethod(method) {
@@ -52,11 +55,11 @@
             });
 
             if (Cookies.get(map_name)) {
-                alert('already upvoted!');
+                alert('Already Voted On This Map!');
             }
             else {
                 $.post("/game/" + map_name + "/upvote/", {
-                    upvote: 1
+                    is_up_vote: is_up_vote
                 },
                 function(data, status) {
                 });
@@ -65,5 +68,4 @@
         }
     </script>
     {% csrf_token %}
-
 </html>

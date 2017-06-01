@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseRedirect
 from .forms import UploadFileForm
 from cv.models import GameMap
+import sys
 
 def handle_uploaded_file(f):
     with open('input.jpg', 'wb+') as destination:
@@ -53,14 +54,17 @@ def update_score(request, name):
 def upvote(request, name):
     if request.method == 'POST':
         game_obj = GameMap.objects.filter(title=name)[0]
-        game_obj.votes = game_obj.votes + 1
+        if request.POST.get("is_up_vote") == 'true':
+            game_obj.votes = game_obj.votes + 1
+        else:
+            game_obj.votes = game_obj.votes - 1
         game_obj.save()
         return HttpResponse("Updated Votes")
     else:
         return HttpResponse("Requires POST request to update votes")
 
 def discover(request):
-    recent_maps = GameMap.objects.order_by('-created')[:15]
+    recent_maps = GameMap.objects.order_by('-created')[:40]
     return render(request, 'discover.html', {'recent_maps': recent_maps})
 
 
