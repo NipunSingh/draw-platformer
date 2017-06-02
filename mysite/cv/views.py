@@ -68,4 +68,3 @@ def discover(request):
     return render(request, 'discover.html', {'recent_maps': recent_maps})
 
 
-

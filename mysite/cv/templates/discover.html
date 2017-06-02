@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -9,35 +10,151 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>Draw Platformer</title>
+    <title>Discover - Draw Platformer</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link href="/static/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="/static/css/1-col-portfolio.css" rel="stylesheet">
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+
+    <!--Upvote button css-->
+
+
 
 </head>
 
-<body id="page-top">
-                <table>
-                    <tr>
-                        <th>Title</th>
-                        <th>High Score</th>
-                        <th>Upvotes</th>
-                        <th>Upvote Button</th>
-                        <th>Downvote Button</th>
-                        <th>Image</th>
-                    </tr>
-                {% for map in recent_maps %}
-                    <tr>
-                        <td>{{map.title}}</td>
-                        <td>{{map.high_score}}</td>
-                        <td>{{map.votes}}</td>
-                        <td><button onclick="vote('{{map.title}}', true)">Upvote</button></td>
-                        <td><button onclick="vote('{{map.title}}', false)">Downvote</button></td>
-                        <td><img src="{{ map.input_img.url }}" height="200" width="250"></td>
-                    </tr>
-                {% endfor %}
-                </table>
-</body>
+<body>
 
+    <!-- Navigation -->
+    <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+        <div class="container">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="#">Draw Platformer</a>
+            </div>
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav">
+                    <li>
+                        <a href="#">About</a>
+                    </li>
+                    <li>
+                        <a href="#">Services</a>
+                    </li>
+                    <li>
+                        <a href="#">Contact</a>
+                    </li>
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+        </div>
+        <!-- /.container -->
+    </nav>
+
+    <!-- Page Content -->
+    <div class="container">
+
+        <!-- Page Heading -->
+        <div class="row">
+            <div class="col-lg-12">
+                <h1 class="page-header">Maps
+                    <!-- <small>Draw Platformer</small> -->
+                </h1>
+            </div>
+        </div>
+        <!-- /.row -->
+
+        {% for map in recent_maps %}
+        <div class="row">
+            <div class="col-md-1">
+            </div>
+            <div class="col-md-3 text-center">
+                <button onclick="vote('{{map.title}}', true)">Upvote</button>
+                <div></div>
+                <button onclick="vote('{{map.title}}', false)">Downvote</button>
+            </div>
+            <div class="col-md-3 text-center">
+                <a href="#">
+                    <img class="" src="{{ map.input_img.url }}" height="175" width="200" alt="">
+                </a>
+            </div>
+            <div class="col-md-3 text-center">
+                <h3>{{map.title}}</h3>
+                <h4>High Score: {{map.high_score}}</h4>
+                <p>Map Votes:  {{map.votes}}</p>
+                <a class="btn btn-primary" href="/game/{{map.title}}/">View Project <span class="glyphicon glyphicon-chevron-right"></span></a>
+            </div>
+            <div class="col-md-2">
+            </div>
+        </div>
+        <hr>
+
+        {% endfor %}
+
+        <!-- Pagination -->
+        <div class="row text-center">
+            <div class="col-lg-12">
+                <ul class="pagination">
+                    <li>
+                        <a href="#">&laquo;</a>
+                    </li>
+                    <li class="active">
+                        <a href="#">1</a>
+                    </li>
+                    <li>
+                        <a href="#">2</a>
+                    </li>
+                    <li>
+                        <a href="#">3</a>
+                    </li>
+                    <li>
+                        <a href="#">4</a>
+                    </li>
+                    <li>
+                        <a href="#">5</a>
+                    </li>
+                    <li>
+                        <a href="#">&raquo;</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <!-- /.row -->
+
+        <hr>
+
+        <!-- Footer -->
+        <footer>
+            <div class="row">
+                <div class="col-lg-12">
+                    <p>Copyright &copy; Your Website 2014</p>
+                </div>
+            </div>
+            <!-- /.row -->
+        </footer>
+
+    </div>
+    <!-- /.container -->
+
+    <!-- jQuery -->
     <script src="/static/vendor/jquery/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-cookie/2.1.4/js.cookie.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/js-cookie/2.1.4/js.cookie.min.js"></script>
 
     <script>
         function vote(map_name, is_up_vote) {
@@ -68,4 +185,10 @@
         }
     </script>
     {% csrf_token %}
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="/static/vendor/bootstrap/js/bootstrap.min.js"></script>
+
+</body>
+
 </html>
