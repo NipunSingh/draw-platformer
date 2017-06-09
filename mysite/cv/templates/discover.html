@@ -202,6 +202,7 @@
                 function csrfSafeMethod(method) {
                     return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
                 }
+
                 $.ajaxSetup({
                     beforeSend: function(xhr, settings) {
                         if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
@@ -210,24 +211,45 @@
                     }
                 });
 
-                if (Cookies.get(data.id)) {
-                    alert('Already Voted On This Map!');
+                $.post("/vote/", {
+                            id: data.id,
+                            up: data.upvoted,
+                            down: data.downvoted,
+                            prev: data.prev
+                },
+                function(response_data, status) {
+                });
+                console.log("data.upvoted" + data.upvoted);
+                console.log("data.downvoted" + data.downvoted);
+                if (data.upvoted) {
+                    console.log("upvoted path triggered");
+                    Cookies.set(data.id + "upvote", true, {path: '' });
+                    Cookies.set(data.id + "downvote", false, {path: '' });
+                }
+                else if (data.downvoted) {
+                    console.log("downvote path triggered");
+                    Cookies.set(data.id + "upvote", false, {path: '' });
+                    Cookies.set(data.id + "downvote", true, {path: '' });
                 }
                 else {
-                    $.post("/vote/", {
-                                id: data.id,
-                                up: data.upvoted,
-                                down: data.downvoted,
-                                prev: data.prev
-                    },
-                    function(response_data, status) {
-                    });
-                    Cookies.set(data.id, 'true', {path: '' });
+                    console.log("this false gets triggered");
+                    Cookies.set(data.id + "upvote", false, {path: '' });
+                    Cookies.set(data.id + "downvote", false, {path: '' });
                 }
         };
 
         {% for map in recent_maps %}
-            $('#topic{{ map.id }}').upvote({id: {{ map.id }}, upvoted: 0, callback: callback});
+        upvoted = 0;
+        downvoted = 0;
+        if (Cookies.get('{{map.id}}upvote') == 'true') {
+            upvoted = 1;
+        }
+        else if (Cookies.get('{{map.id}}downvote') == 'true')
+        {
+            downvoted = 1;
+        }
+        $('#topic{{ map.id }}').upvote({id: {{ map.id }}, upvoted: upvoted, downvoted: downvoted, callback: callback});
+
         {% endfor %}
     </script>
 
