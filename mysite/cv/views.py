@@ -20,7 +20,7 @@ def upload_file(request):
             handle_uploaded_file(input_img)
             map_title = request.POST['title']
             with open('test_output.txt', 'r') as f:
-            	file_contents = f.read()
+                file_contents = f.read()
                 new_game_map = GameMap.objects.create(title=map_title,map=file_contents,input_img=input_img)
                 new_game_map.save()
             return HttpResponseRedirect("/game/" + map_title + "/")
@@ -51,20 +51,42 @@ def update_score(request, name):
     else:
         return HttpResponse("Requires POST request to update scores")
 
-def upvote(request, name):
+def vote(request):
+    for key, value in request.POST.items():
+        print >>sys.stderr, (key, value)
+
     if request.method == 'POST':
-        game_obj = GameMap.objects.filter(title=name)[0]
-        if request.POST.get("is_up_vote") == 'true':
-            game_obj.votes = game_obj.votes + 1
+        map_id = request.POST.get("id")
+        is_upvote = request.POST.get("up")
+        is_downvote = request.POST.get("down")
+        prev = request.POST.get("prev") #previously clicked button {none,downvoted,upvoted}
+
+        game_obj = GameMap.objects.filter(id=map_id)[0]
+        if prev == "none":
+            if is_upvote == "true":
+                game_obj.votes = game_obj.votes + 1
+            else:
+                game_obj.votes = game_obj.votes - 1
+        elif prev == "downvoted":
+            if is_upvote == "true":
+                game_obj.votes = game_obj.votes + 2
+            else:
+                game_obj.votes = game_obj.votes + 1
+        elif prev == "upvoted":
+            if is_downvote == "true":
+                game_obj.votes = game_obj.votes - 2
+            else:
+                game_obj.votes = game_obj.votes - 1
         else:
-            game_obj.votes = game_obj.votes - 1
+            print >> sys.stderr, "Logical Error, prev not matched to any of the cases"
+
         game_obj.save()
         return HttpResponse("Updated Votes")
+
     else:
         return HttpResponse("Requires POST request to update votes")
 
 def discover(request):
     recent_maps = GameMap.objects.order_by('-created')[:40]
     return render(request, 'discover.html', {'recent_maps': recent_maps})
-
 

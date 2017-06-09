@@ -26,10 +26,13 @@
         <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
     <![endif]-->
 
-
-    <!--Upvote button css-->
-
-
+    <style>
+        @media (min-width: 1000px) {
+            .upvote {
+                margin-top: 50px;
+            }
+        }
+    </style>
 
 </head>
 
@@ -74,7 +77,7 @@
         <div class="row">
             <div class="col-lg-12">
                 <h1 class="page-header">Maps
-                    <!-- <small>Draw Platformer</small> -->
+                     <!-- <small>Most Recent</small> -->
                 </h1>
             </div>
         </div>
@@ -85,19 +88,20 @@
             <div class="col-md-1">
             </div>
             <div class="col-md-3 text-center">
-                <button onclick="vote('{{map.title}}', true)">Upvote</button>
-                <div></div>
-                <button onclick="vote('{{map.title}}', false)">Downvote</button>
+                <div id="topic{{map.id}}" class="upvote" style="">
+                    <a class="upvote upvote"></a>
+                    <span class="count">{{map.votes}}</span>
+                    <a class="downvote"></a>
+                </div>
             </div>
             <div class="col-md-3 text-center">
                 <a href="#">
                     <img class="" src="{{ map.input_img.url }}" height="175" width="200" alt="">
                 </a>
             </div>
-            <div class="col-md-3 text-center">
+            <div class="col-md-3 text-center" style="margin-top: 20px;">
                 <h3>{{map.title}}</h3>
                 <h4>High Score: {{map.high_score}}</h4>
-                <p>Map Votes:  {{map.votes}}</p>
                 <a class="btn btn-primary" href="/game/{{map.title}}/">View Project <span class="glyphicon glyphicon-chevron-right"></span></a>
             </div>
             <div class="col-md-2">
@@ -188,6 +192,46 @@
 
     <!-- Bootstrap Core JavaScript -->
     <script src="/static/vendor/bootstrap/js/bootstrap.min.js"></script>
+    <script src="/static/vendor/jquery-upvote/lib/jquery.upvote.js"></script>
+    <link rel="stylesheet" href="/static/vendor/jquery-upvote/lib/jquery.upvote.css">
+    <script>
+
+        var callback = function(data) {
+                var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
+
+                function csrfSafeMethod(method) {
+                    return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+                }
+                $.ajaxSetup({
+                    beforeSend: function(xhr, settings) {
+                        if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                            xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                        }
+                    }
+                });
+
+                if (Cookies.get(data.id)) {
+                    alert('Already Voted On This Map!');
+                }
+                else {
+                    $.post("/vote/", {
+                                id: data.id,
+                                up: data.upvoted,
+                                down: data.downvoted,
+                                prev: data.prev
+                    },
+                    function(response_data, status) {
+                    });
+                    Cookies.set(data.id, 'true', {path: '' });
+                }
+        };
+
+        {% for map in recent_maps %}
+            $('#topic{{ map.id }}').upvote({id: {{ map.id }}, upvoted: 0, callback: callback});
+        {% endfor %}
+    </script>
+
+
 
 </body>
 
