@@ -86,7 +86,12 @@ def vote(request):
     else:
         return HttpResponse("Requires POST request to update votes")
 
-def discover(request):
-    recent_maps = GameMap.objects.order_by('-created')[:40]
-    return render(request, 'discover.html', {'recent_maps': recent_maps})
+def discover(request, page):
+    print >> sys.stderr, page
+    page = int(page)
+    start_index = page*10-10
+    end_index = page*10
+    next_page = page + 1
+    recent_maps = GameMap.objects.order_by('-created')[start_index:end_index]
+    return render(request, 'discover.html', {'recent_maps': recent_maps, 'next_page': next_page})
 

@@ -82,36 +82,42 @@
             </div>
         </div>
         <!-- /.row -->
-
-        {% for map in recent_maps %}
-        <div class="row">
-            <div class="col-md-1">
-            </div>
-            <div class="col-md-3 text-center">
-                <div id="topic{{map.id}}" class="upvote" style="">
-                    <a class="upvote upvote"></a>
-                    <span class="count">{{map.votes}}</span>
-                    <a class="downvote"></a>
+        <div id="posts">
+            {% for map in recent_maps %}
+            <div class="post">
+                <div class="row">
+                    <div class="col-md-1">
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <div id="topic{{map.id}}" class="upvote" style="">
+                            <a class="upvote upvote"></a>
+                            <span class="count">{{map.votes}}</span>
+                            <a class="downvote"></a>
+                        </div>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <a href="#">
+                            <img class="" src="{{ map.input_img.url }}" height="175" width="200" alt="">
+                        </a>
+                    </div>
+                    <div class="col-md-3 text-center" style="margin-top: 20px;">
+                        <h3>{{map.title}}</h3>
+                        <h4>High Score: {{map.high_score}}</h4>
+                        <a class="btn btn-primary" href="/game/{{map.title}}/">View Project <span class="glyphicon glyphicon-chevron-right"></span></a>
+                    </div>
+                    <div class="col-md-2">
+                    </div>
                 </div>
+                <hr>
             </div>
-            <div class="col-md-3 text-center">
-                <a href="#">
-                    <img class="" src="{{ map.input_img.url }}" height="175" width="200" alt="">
-                </a>
-            </div>
-            <div class="col-md-3 text-center" style="margin-top: 20px;">
-                <h3>{{map.title}}</h3>
-                <h4>High Score: {{map.high_score}}</h4>
-                <a class="btn btn-primary" href="/game/{{map.title}}/">View Project <span class="glyphicon glyphicon-chevron-right"></span></a>
-            </div>
-            <div class="col-md-2">
-            </div>
+            {% endfor %}
         </div>
-        <hr>
 
-        {% endfor %}
+        <div id="pagination">
+            <a href="/discover/page/{{next_page}}/" class="next">next</a>
+        </div>
 
-        <!-- Pagination -->
+        <!--
         <div class="row text-center">
             <div class="col-lg-12">
                 <ul class="pagination">
@@ -139,20 +145,7 @@
                 </ul>
             </div>
         </div>
-        <!-- /.row -->
-
-        <hr>
-
-        <!-- Footer -->
-        <footer>
-            <div class="row">
-                <div class="col-lg-12">
-                    <p>Copyright &copy; Your Website 2014</p>
-                </div>
-            </div>
-            <!-- /.row -->
-        </footer>
-
+        !-->
     </div>
     <!-- /.container -->
 
@@ -194,6 +187,8 @@
     <script src="/static/vendor/bootstrap/js/bootstrap.min.js"></script>
     <script src="/static/vendor/jquery-upvote/lib/jquery.upvote.js"></script>
     <link rel="stylesheet" href="/static/vendor/jquery-upvote/lib/jquery.upvote.css">
+    <script type="text/javascript" src="/static/vendor/jquery-ias/jquery-ias.min.js"></script>
+
     <script>
 
         var callback = function(data) {
@@ -251,6 +246,16 @@
         $('#topic{{ map.id }}').upvote({id: {{ map.id }}, upvoted: upvoted, downvoted: downvoted, callback: callback});
 
         {% endfor %}
+    </script>
+
+    <script>
+        var ias = jQuery.ias({
+          container:  '#posts',
+          item:       '.post',
+          pagination: '#pagination',
+          next:       '.next'
+        });
+        ias.extension(new IASSpinnerExtension());
     </script>
 
 
