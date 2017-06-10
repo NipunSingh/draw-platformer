@@ -23,7 +23,7 @@ def upload_file(request):
                 file_contents = f.read()
                 new_game_map = GameMap.objects.create(title=map_title,map=file_contents,input_img=input_img)
                 new_game_map.save()
-            return HttpResponseRedirect("/game/" + map_title + "/")
+            return HttpResponseRedirect("/game/" + map_title)
     else:
         form = UploadFileForm()
     return render(request, 'index.html', {'form': form})

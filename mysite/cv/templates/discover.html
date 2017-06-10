@@ -78,72 +78,43 @@
         <!-- /.row -->
         <div id="posts">
             {% for map in recent_maps %}
-            <div class="post">
-                <div class="row">
-                    <div class="col-md-1">
-                    </div>
-                    <div class="col-md-3 text-center">
-                        <div id="topic{{map.id}}" class="upvote" style="">
-                            <a class="upvote upvote"></a>
-                            <span class="count">{{map.votes}}</span>
-                            <a class="downvote"></a>
+                <div class="post">
+                    <div class="row">
+                        <div class="col-md-1">
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <div id="topic{{map.id}}" class="upvote" style="">
+                                <a class="upvote upvote"></a>
+                                <span class="count">{{map.votes}}</span>
+                                <a class="downvote"></a>
+                            </div>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <a href="#">
+                                <img class="" src="{{ map.input_img.url }}" height="175" width="200" alt="">
+                            </a>
+                        </div>
+                        <div class="col-md-3 text-center" style="margin-top: 20px;">
+                            <h3>{{map.title}}</h3>
+                            {% if map.high_score == 9999 %}
+                                <h4>High Score: Unbeaten!</h4>
+                            {% else %}
+                                <h4>High Score: {{map.high_score}}</h4>
+                            {% endif %}
+                            <a class="btn btn-primary" href="/game/{{map.title}}">Play Game<span class="glyphicon glyphicon-chevron-right"></span></a>
+                        </div>
+                        <div class="col-md-2">
                         </div>
                     </div>
-                    <div class="col-md-3 text-center">
-                        <a href="#">
-                            <img class="" src="{{ map.input_img.url }}" height="175" width="200" alt="">
-                        </a>
-                    </div>
-                    <div class="col-md-3 text-center" style="margin-top: 20px;">
-                        <h3>{{map.title}}</h3>
-                        {% if map.high_score == 9999 %}
-                            <h4>High Score: Unbeaten!</h4>
-                        {% else %}
-                            <h4>High Score: {{map.high_score}}</h4>
-                        {% endif %}
-                        <a class="btn btn-primary" href="/game/{{map.title}}/">Play Game<span class="glyphicon glyphicon-chevron-right"></span></a>
-                    </div>
-                    <div class="col-md-2">
-                    </div>
+                    <hr>
                 </div>
-                <hr>
-            </div>
             {% endfor %}
         </div>
 
         <div id="pagination">
-            <a href="/discover/page/{{next_page}}/" class="next">next</a>
+            <a href="/discover/page/{{next_page}}" class="next">next</a>
         </div>
 
-        <!--
-        <div class="row text-center">
-            <div class="col-lg-12">
-                <ul class="pagination">
-                    <li>
-                        <a href="#">&laquo;</a>
-                    </li>
-                    <li class="active">
-                        <a href="#">1</a>
-                    </li>
-                    <li>
-                        <a href="#">2</a>
-                    </li>
-                    <li>
-                        <a href="#">3</a>
-                    </li>
-                    <li>
-                        <a href="#">4</a>
-                    </li>
-                    <li>
-                        <a href="#">5</a>
-                    </li>
-                    <li>
-                        <a href="#">&raquo;</a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-        !-->
     </div>
     <!-- /.container -->
 
