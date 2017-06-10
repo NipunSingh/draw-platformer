@@ -23,7 +23,7 @@ def upload_file(request):
                 file_contents = f.read()
                 new_game_map = GameMap.objects.create(title=map_title,map=file_contents,input_img=input_img)
                 new_game_map.save()
-            return HttpResponseRedirect("/game/" + map_title)
+            return HttpResponseRedirect("/play/" + map_title)
     else:
         form = UploadFileForm()
     return render(request, 'index.html', {'form': form})
@@ -86,8 +86,10 @@ def vote(request):
     else:
         return HttpResponse("Requires POST request to update votes")
 
+def discover_home(request):
+    return discover(request, 1)
+
 def discover(request, page):
-    print >> sys.stderr, page
     page = int(page)
     start_index = page*10-10
     end_index = page*10

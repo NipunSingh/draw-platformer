@@ -786,7 +786,7 @@ Loop();
                     }
                 }
             });
-            $.post("/game/{{title}}/updatescore/", {
+            $.post("/play/{{title}}/updatescore/", {
                     score: score
                 },
                 function(data, status) {

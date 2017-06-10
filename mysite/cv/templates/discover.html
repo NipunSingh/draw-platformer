@@ -101,7 +101,7 @@
                             {% else %}
                                 <h4>High Score: {{map.high_score}}</h4>
                             {% endif %}
-                            <a class="btn btn-primary" href="/game/{{map.title}}">Play Game<span class="glyphicon glyphicon-chevron-right"></span></a>
+                            <a class="btn btn-primary" href="/play/{{map.title}}">Play Game<span class="glyphicon glyphicon-chevron-right"></span></a>
                         </div>
                         <div class="col-md-2">
                         </div>
@@ -122,34 +122,7 @@
     <script src="/static/vendor/jquery/jquery.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/js-cookie/2.1.4/js.cookie.min.js"></script>
 
-    <script>
-        function vote(map_name, is_up_vote) {
-            var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
 
-            function csrfSafeMethod(method) {
-                return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
-            }
-            $.ajaxSetup({
-                beforeSend: function(xhr, settings) {
-                    if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
-                        xhr.setRequestHeader("X-CSRFToken", csrftoken);
-                    }
-                }
-            });
-
-            if (Cookies.get(map_name)) {
-                alert('Already Voted On This Map!');
-            }
-            else {
-                $.post("/game/" + map_name + "/upvote/", {
-                    is_up_vote: is_up_vote
-                },
-                function(data, status) {
-                });
-                Cookies.set(map_name, 'true', {path: '' });
-            }
-        }
-    </script>
     {% csrf_token %}
 
     <!-- Bootstrap Core JavaScript -->
