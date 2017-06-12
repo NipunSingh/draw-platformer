@@ -28,24 +28,28 @@ def upload_file(request):
         form = UploadFileForm()
     return render(request, 'index.html', {'form': form})
 
-def game(request, name):
-    game_obj = GameMap.objects.filter(title=name)
+def game(request, map_name):
+    game_obj = GameMap.objects.filter(title=map_name)
     if game_obj:
         game_obj = game_obj[0]
         high_score_string = game_obj.high_score
         if (game_obj.high_score == 9999): # defualt value
             high_score_string = "Level never beaten!"
-        return render(request, 'play.html', {'map': game_obj.map, 'high_score': high_score_string, 'title': game_obj.title})
+        return render(request, 'play.html', {'map': game_obj, 'high_score': high_score_string})
     else:
-        return HttpResponse("<h1> Game Page Does Not Exist With Name: </h1>" + name)
+        return HttpResponse("<h1> Game Page Does Not Exist With Name: </h1>" + map_name)
 
-def update_score(request, name):
+def update_score(request, map_name):
     if request.method == 'POST':
         high_score = int(request.POST.get("score"))
-        debug_string = "Trying to update score for game " + name + " with score: " + request.POST.get("score")
-        game_obj = GameMap.objects.filter(title=name)[0]
+        username = request.POST.get("username")
+        game_obj = GameMap.objects.filter(title=map_name)[0]
+        print >> sys.stderr, (high_score, username)
         if (game_obj.high_score > high_score):
             game_obj.high_score = high_score
+            if username == "":
+                username = "Anonymous"
+            game_obj.high_score_name = username
             game_obj.save()
         return HttpResponse(debug_string)
     else:

@@ -99,7 +99,7 @@
                             {% if map.high_score == 9999 %}
                                 <h4>High Score: Unbeaten!</h4>
                             {% else %}
-                                <h4>High Score: {{map.high_score}}</h4>
+                                <h4>High Score: {{map.high_score}} set by {{map.high_score_name}}</h4>
                             {% endif %}
                             <a class="btn btn-primary" href="/play/{{map.title}}">Play Game<span class="glyphicon glyphicon-chevron-right"></span></a>
                         </div>

@@ -44,7 +44,7 @@
                 <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
                     <span class="sr-only">Toggle navigation</span> Menu <i class="fa fa-bars"></i>
                 </button>
-                <a class="navbar-brand page-scroll" href="/">Draw Platformer - {{title}}</a>
+                <a class="navbar-brand page-scroll" href="/">Draw Platformer - {{map.title}}</a>
             </div>
 
             
@@ -186,7 +186,7 @@ var savedMap = {
         {id: 12,colour: '#008000', solid: 0, script: 'add_coin'} <!--Coin-->
     ],
 
-    data: {{map}},
+    data: {{map.map}},
     /* An array representing the map tiles. Each number corresponds to a key */
 
     /* Default gravity of the map */
@@ -226,7 +226,7 @@ var savedMap = {
         change_colour: 'game.player.colour = "#"+(Math.random()*0xFFFFFF<<0).toString(16);',
         /* you could load a new map variable here */
         boing: 'var boing = new Audio("jump.wav");boing.play();',
-        next_level: 'if(map.coin_count >= map.total_coins){alert("Yay! You won in " + totalSeconds + " seconds! Reloading map."); sendHighScore(totalSeconds); location.reload();} else{alert("You have not finished yet!!! You need " + (map.total_coins - map.coin_count) + " more coins to win!");}this.key.left  = false;this.key.up    = false;this.key.right = false;this.key.down = false;',
+        next_level: 'if(map.coin_count >= map.total_coins){ if (totalSeconds < {{map.high_score}}) {var username = prompt("You set a high score of only " + totalSeconds + " seconds! Enter your name to get credit for your highscore: "); sendHighScore(totalSeconds, username);} else { alert("Congrats, you finished in " + totalSeconds + " seconds. Now try to beat the highscore!");} location.reload();} else{alert("You have not finished yet!!! You need " + (map.total_coins - map.coin_count) + " more coins to win!");} this.key.left  = false;this.key.up    = false;this.key.right = false;this.key.down = false;',
         death: 'alert("You died!");location.reload();',
         unlock: 'game.current_map.keys[10].solid = 0;game.current_map.keys[10].colour = "#888";',
         add_coin: 'var audio = new Audio("/static/coin.wav");audio.play();map.player.x = (this.player.loc.x) / (this.tile_size);map.player.y = (this.player.loc.y) / (this.tile_size);if(this.current_map.data[Math.round(map.player.y)][Math.round(map.player.x)].id == 12){this.current_map.data[Math.round(map.player.y)][Math.round(map.player.x)] = 1;}if(this.current_map.data[Math.round(map.player.y)-1][Math.round(map.player.x)].id == 12){this.current_map.data[Math.round(map.player.y)-1][Math.round(map.player.x)] = 1;}if(this.current_map.data[Math.round(map.player.y)][Math.round(map.player.x)-1].id == 12){this.current_map.data[Math.round(map.player.y)][Math.round(map.player.x)-1] = 1;}if(this.current_map.data[Math.round(map.player.y)+1][Math.round(map.player.x)].id == 12){this.current_map.data[Math.round(map.player.y)+1][Math.round(map.player.x)] = 1;}if(this.current_map.data[Math.round(map.player.y)][Math.round(map.player.x)+1].id == 12){this.current_map.data[Math.round(map.player.y)][Math.round(map.player.x)+1] = 1;}map.coin_count++;document.getElementById("points").innerHTML = map.coin_count + "/" + map.total_coins;game.load_map(map);'
@@ -773,7 +773,7 @@ Loop();
     </script>
 
     <script>
-        function sendHighScore(score) {
+        function sendHighScore(score, username) {
             var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
 
             function csrfSafeMethod(method) {
@@ -786,8 +786,9 @@ Loop();
                     }
                 }
             });
-            $.post("/play/{{title}}/updatescore/", {
-                    score: score
+            $.post("/play/{{map.title}}/updatescore/", {
+                    score: score,
+                    username: username
                 },
                 function(data, status) {
                 });
