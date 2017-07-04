@@ -98,6 +98,6 @@ def discover(request, page):
     start_index = page*10-10
     end_index = page*10
     next_page = page + 1
-    recent_maps = GameMap.objects.order_by('-created')[start_index:end_index]
+    recent_maps = GameMap.objects.order_by('-votes')[start_index:end_index]
     return render(request, 'discover.html', {'recent_maps': recent_maps, 'next_page': next_page})
 
