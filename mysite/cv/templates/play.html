@@ -32,35 +32,65 @@
         <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
     <![endif]-->
     
+    <style>
+    input#un-mute {
+  display: none;
+}
+
+.unmute img {
+  display: none;
+}
+
+input#un-mute:checked ~ .unmute img {
+  display: initial;
+}
+
+input#un-mute:checked ~ .mute img {
+  display: none;
+}
+    </style>
+    
 
 </head>
 
-<body id="page-top">
+<body>
 
-    <nav id="mainNav" class="navbar navbar-default navbar-fixed-top">
-        <div class="container-fluid">
-            <!-- Brand and toggle get grouped for better mobile display -->
-            <div class="navbar-header">
-                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
-                    <span class="sr-only">Toggle navigation</span> Menu <i class="fa fa-bars"></i>
-                </button>
-                <a class="navbar-brand page-scroll" href="/">Draw Platformer - {{map.title}}</a>
-            </div>
+    <h1>Draw Platformer - {{map.title}}</h1>
+    <p style="font-size: medium; margin-top: 35px;">Coins Collected: <label id="points" style="font-size: large;">0</label></p>
+    <p style="font-size: medium;">Time Elapsed: <label style="font-size:large; color: red;" id="totalSeconds">0</label></p>
+    <p style="font-size: medium; margin-top: 15px;">Highscore: <label id="high_score" style="font-size: large;"> {{high_score}}</label></p>
+    <input type="checkbox" name="un-mute" id="un-mute">
+    <label for="un-mute" class="unmute">
+        <img src="http://upload.wikimedia.org/wikipedia/commons/3/3f/Mute_Icon.svg" alt="Mute_Icon.svg" title="Mute icon" style="width:8%;height:8%;">
+    </label>
+    <label for="un-mute" class="mute">
+        <img src="http://upload.wikimedia.org/wikipedia/commons/2/21/Speaker_Icon.svg" alt="Speaker_Icon.svg" title="Unmute/speaker icon" style="width:8%;height:8%;">
+    </label>
+    <div class="header-content-inner">
+        <canvas id="canvas"></canvas>
+    </div>
 
-            
-            <!-- /.navbar-collapse -->
-        </div>
-        <!-- /.container-fluid -->
-    </nav>
 
-    <header>
-        <div class="header-content">
-            <p style="font-size: medium; margin-top: 35px;">Coins Collected: <label id="points" style="font-size: large;">0</label></p>
-            <!-- <p style="font-size: medium;">Time Elapsed: <label style="font-size:large;" id="minutes">00</label>:<label style="font-size:large;" id="seconds">00</label></p> -->
-            <p style="font-size: medium;">Time Elapsed: <label style="font-size:large; color: red;" id="totalSeconds">0</label></p>
-            <p style="font-size: medium; margin-top: 15px;">Highscore: <label id="high_score" style="font-size: large;"> {{high_score}}</label></p>
+
 
     <script type="text/javascript">
+        var mainSong = new Audio("/static/underworld.mp3");
+        mainSong.play();
+        var isPlaying = true;
+
+        var un_mute = document.getElementById('un-mute');
+
+        un_mute.onclick = function() {
+            if(isPlaying){
+                mainSong.pause();
+                isPlaying = false;
+            }
+            else{
+                mainSong.play();
+                isPlaying = true;
+            }
+        };
+
         var minutesLabel = document.getElementById("minutes")
         var secondsLabel = document.getElementById("seconds");
         var totalSecondsLabel = document.getElementById("totalSeconds");
@@ -88,18 +118,7 @@
             }
         }
     </script>
-            
-            
-            <div class="header-content-inner">
-                <canvas id="canvas"></canvas>
-            </div>
-            
-            
-        </div>
-    </header>
 
-
-    
 
     <!-- jQuery -->
     <script src="/static/vendor/jquery/jquery.min.js"></script>
@@ -116,8 +135,11 @@
     <script src="/static/js/creative.min.js"></script>
 
 </body>
+
     <!--Game-->
+
     <script>
+
     /*
 Copyright (c) 2013 dissimulate at codepen
 
@@ -142,22 +164,19 @@ THE SOFTWARE.
 
 /* Customisable map data */
 
-var mainSong = new Audio("/static/underworld.mp3"); // buffers automatically when created
-mainSong.play();
-
 
 var savedMap = {
 
     coin_count: 0,
-    
+
     total_coins: 0,
-    
-    tile_size: 20,
+
+    tile_size: Math.round(document.documentElement.clientHeight*(1/60)),
 
     /*
-    
+
     Key vairables:
-    
+
     id       [required] - an integer that corresponds with a tile in the data array.
     colour   [required] - any javascript compatible colour variable.
     solid    [optional] - whether the tile is solid or not, defaults to false.
@@ -167,9 +186,9 @@ var savedMap = {
     gravity  [optional] - gravity of the tile, must have X and Y values (e.g {x:0.5, y:0.5}).
     fore     [optional] - whether the tile is drawn in front of the player, defaults to false.
     script   [optional] - refers to a script in the scripts section, executed if it is touched.
-    
+
     */
-    
+
     keys: [
         {id: 0, colour: '#333', solid: 0},
         {id: 1, colour: '#FFFFFF', solid: 0}, <!--Background-->
@@ -186,31 +205,31 @@ var savedMap = {
         {id: 12,colour: '#008000', solid: 0, script: 'add_coin'} <!--Coin-->
     ],
 
-    data: {{map.map}},
+    data: [[2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2], [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2], [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2], [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 2], [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 9, 9, 1, 1, 1, 1, 9, 9, 2], [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 9, 9, 1, 1, 1, 1, 9, 9, 2], [2, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 9, 9, 1, 8, 2, 1, 9, 1, 2], [2, 1, 1, 1, 1, 1, 1, 9, 1, 1, 1, 1, 12, 1, 1, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 9, 1, 1, 1, 1, 1, 9, 1, 2], [2, 1, 1, 1, 1, 1, 1, 9, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 9, 1, 1, 1, 1, 1, 9, 1, 2], [2, 1, 1, 1, 1, 1, 1, 9, 1, 1, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 9, 9, 9, 9, 9, 9, 9, 1, 2], [2, 1, 1, 1, 1, 1, 1, 9, 1, 1, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2], [2, 1, 1, 1, 1, 1, 1, 9, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2], [2, 1, 1, 1, 1, 1, 1, 9, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2], [2, 1, 1, 1, 1, 1, 1, 9, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 12, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2], [2, 1, 1, 1, 1, 1, 1, 9, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2], [2, 1, 1, 1, 1, 1, 1, 9, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2], [2, 1, 1, 1, 1, 1, 1, 9, 5, 5, 5, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 9, 9, 9, 9, 9, 9, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 2], [2, 1, 1, 1, 1, 1, 1, 9, 5, 5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2], [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2], [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2], [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2], [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 9, 9, 1, 1, 1, 12, 1, 1, 1, 1, 1, 1, 1, 2], [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 9, 9, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 2], [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 9, 9, 1, 1, 1, 1, 2, 2, 5, 5, 5, 5, 1, 2], [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 9, 9, 1, 1, 1, 2, 2, 2, 2, 5, 5, 5, 1, 2], [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 9, 9, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 2], [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 9, 9, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 2], [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 9, 9, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 2], [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 12, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 2, 1, 1, 1, 2], [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 2], [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 2], [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 9, 9, 9, 9, 9, 9, 9, 2, 2, 2, 2, 2, 2, 2, 5, 5, 5, 5, 1, 1, 1, 1, 1, 1, 1, 2], [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2], [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2], [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2], [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]],
     /* An array representing the map tiles. Each number corresponds to a key */
 
     /* Default gravity of the map */
-    
+
     gravity: {
         x: 0,
-        y: 0.3
+        y: document.documentElement.clientHeight*(1.25/4000)
     },
-    
+
     /* Velocity limits */
 
     vel_limit: {
-        x: 3,
-        y: 10
+        x: document.documentElement.clientHeight*(1/400),
+        y: document.documentElement.clientHeight*(1/120)
     },
 
     /* Movement speed when the key is pressed */
-    
+
     movement_speed: {
-        jump: 6,
-        left: 1,
-        right: 1
+        jump: document.documentElement.clientHeight*(1/200),
+        left: document.documentElement.clientHeight*(1/1200),
+        right: document.documentElement.clientHeight*(1/1200)
     },
-    
+
     /* The coordinates at which the player spawns and the colour of the player */
 
     player: {
@@ -218,7 +237,7 @@ var savedMap = {
         y: 2,
         colour: '#FF0000'
     },
-    
+
     /* scripts refered to by the "script" variable in the tile keys */
 
     scripts: {
@@ -244,7 +263,7 @@ for(var i=0; i < savedMap.data.length;i++){
 }
 document.getElementById("points").innerHTML = 0 + "/" + savedMap.total_coins;
 
-        
+
 map = savedMap;
 
 /* Clarity engine */
@@ -256,17 +275,17 @@ var Clarity = function () {
     this.tile_size      = 16;
     this.limit_viewport = false;
     this.jump_switch    = 0;
-    
+
     this.viewport = {
-        x: 200,
-        y: 200
+        x: document.documentElement.clientHeight*(5/24),
+        y: document.documentElement.clientHeight*(5/24)
     };
-    
+
     this.camera = {
         x: 0,
         y: 0
     };
-    
+
     this.key = {
         left: false,
         right: false,
@@ -281,12 +300,12 @@ var Clarity = function () {
             x: 0,
             y: 0
         },
-        
+
         vel: {
             x: 0,
             y: 0
         },
-        
+
         can_jump: true
     };
 
@@ -358,7 +377,7 @@ Clarity.prototype.load_map = function (map) {
      || typeof map.keys === 'undefined') {
 
         this.error('Error: Invalid map data!');
-        
+
         return false;
     }
 
@@ -369,18 +388,18 @@ Clarity.prototype.load_map = function (map) {
     this.tile_size = map.tile_size || 16;
 
     var _this = this;
-    
+
     this.current_map.width = 0;
     this.current_map.height = 0;
 
     map.keys.forEach(function (key) {
 
         map.data.forEach(function (row, y) {
-            
+
             _this.current_map.height = Math.max(_this.current_map.height, y);
 
             row.forEach(function (tile, x) {
-                
+
                 _this.current_map.width = Math.max(_this.current_map.width, x);
 
                 if (tile == key.id)
@@ -388,24 +407,24 @@ Clarity.prototype.load_map = function (map) {
             });
         });
     });
-    
+
     this.current_map.width_p = this.current_map.width * this.tile_size;
     this.current_map.height_p = this.current_map.height * this.tile_size;
 
     this.player.loc.x = map.player.x * this.tile_size || 0;
     this.player.loc.y = map.player.y * this.tile_size || 0;
     this.player.colour = map.player.colour || '#000';
-  
+
     this.key.left  = false;
     this.key.up    = false;
     this.key.right = false;
     this.key.down = false;
-    
+
     this.camera = {
         x: 0,
         y: 0
     };
-    
+
     this.player.vel = {
         x: 0,
         y: 0
@@ -425,8 +444,8 @@ Clarity.prototype.draw_tile = function (x, y, tile, context) {
 
     if (!tile || !tile.colour) return;
 
-    
-    
+
+
     context.fillStyle = tile.colour;
     context.fillRect(
         x,
@@ -446,25 +465,25 @@ Clarity.prototype.draw_map = function (context, fore) {
 
                 var t_x = (x * this.tile_size) - this.camera.x;
                 var t_y = (y * this.tile_size) - this.camera.y;
-                
+
                 if(t_x < -this.tile_size
                 || t_y < -this.tile_size
                 || t_x > this.viewport.x
                 || t_y > this.viewport.y) continue;
-                
+
                 this.draw_tile(
                     t_x,
                     t_y,
                     this.current_map.data[y][x],
                     context
                 );
-                
-                
-                
+
+
+
             }
         }
     }
-    
+
 
     if (!fore) this.draw_map(context, true);
 };
@@ -480,18 +499,18 @@ Clarity.prototype.move_player = function () {
         Math.round(this.player.loc.x / this.tile_size),
         Math.round(this.player.loc.y / this.tile_size)
     );
-     
+
     if(tile.gravity) {
-        
+
         this.player.vel.x += tile.gravity.x;
         this.player.vel.y += tile.gravity.y;
-        
+
     } else {
-        
+
         this.player.vel.x += this.current_map.gravity.x;
         this.player.vel.y += this.current_map.gravity.y;
     }
-    
+
     if (tile.friction) {
 
         this.player.vel.x *= tile.friction.x;
@@ -521,19 +540,19 @@ Clarity.prototype.move_player = function () {
     if (tile.jump && this.jump_switch > 15) {
 
         this.player.can_jump = true;
-        
+
         this.jump_switch = 0;
-        
+
     } else this.jump_switch++;
-    
+
     this.player.vel.x = Math.min(Math.max(this.player.vel.x, -this.current_map.vel_limit.x), this.current_map.vel_limit.x);
     this.player.vel.y = Math.min(Math.max(this.player.vel.y, -this.current_map.vel_limit.y), this.current_map.vel_limit.y);
-    
+
     this.player.loc.x += this.player.vel.x;
     this.player.loc.y += this.player.vel.y;
-    
+
     this.player.vel.x *= .9;
-    
+
     if (left1.solid || left2.solid || right1.solid || right2.solid) {
 
         /* fix overlap */
@@ -556,13 +575,13 @@ Clarity.prototype.move_player = function () {
         if (right2.solid && right2.bounce > bounce) bounce = right2.bounce;
 
         this.player.vel.x *= -bounce || 0;
-        
+
     }
-    
+
     if (top1.solid || top2.solid || bottom1.solid || bottom2.solid) {
 
         /* fix overlap */
-        
+
         while (this.get_tile(x_near1, Math.floor(this.player.loc.y / this.tile_size)).solid
             || this.get_tile(x_near2, Math.floor(this.player.loc.y / this.tile_size)).solid)
             this.player.loc.y += 0.1;
@@ -572,48 +591,48 @@ Clarity.prototype.move_player = function () {
             this.player.loc.y -= 0.1;
 
         /* tile bounce */
-        
+
         var bounce = 0;
-        
+
         if (top1.solid && top1.bounce > bounce) bounce = top1.bounce;
         if (top2.solid && top2.bounce > bounce) bounce = top2.bounce;
         if (bottom1.solid && bottom1.bounce > bounce) bounce = bottom1.bounce;
         if (bottom2.solid && bottom2.bounce > bounce) bounce = bottom2.bounce;
-        
+
         this.player.vel.y *= -bounce || 0;
 
         if ((bottom1.solid || bottom2.solid) && !tile.jump) {
-            
+
             this.player.on_floor = true;
             this.player.can_jump = true;
         }
-        
+
     }
-    
+
     // adjust camera
 
     var c_x = Math.round(this.player.loc.x - this.viewport.x/2);
     var c_y = Math.round(this.player.loc.y - this.viewport.y/2);
     var x_dif = Math.abs(c_x - this.camera.x);
     var y_dif = Math.abs(c_y - this.camera.y);
-    
+
     if(x_dif > 5) {
-        
+
         var mag = Math.round(Math.max(1, x_dif * 0.1));
-    
+
         if(c_x != this.camera.x) {
-            
+
             this.camera.x += c_x > this.camera.x ? mag : -mag;
-            
+
             if(this.limit_viewport) {
-                
-                this.camera.x = 
+
+                this.camera.x =
                     Math.min(
                         this.current_map.width_p - this.viewport.x + this.tile_size,
                         this.camera.x
                     );
-                
-                this.camera.x = 
+
+                this.camera.x =
                     Math.max(
                         0,
                         this.camera.x
@@ -621,24 +640,24 @@ Clarity.prototype.move_player = function () {
             }
         }
     }
-    
+
     if(y_dif > 5) {
-        
+
         var mag = Math.round(Math.max(1, y_dif * 0.1));
-        
+
         if(c_y != this.camera.y) {
-            
+
             this.camera.y += c_y > this.camera.y ? mag : -mag;
-        
+
             if(this.limit_viewport) {
-                
-                this.camera.y = 
+
+                this.camera.y =
                     Math.min(
                         this.current_map.height_p - this.viewport.y + this.tile_size,
                         this.camera.y
                     );
-                
-                this.camera.y = 
+
+                this.camera.y =
                     Math.max(
                         0,
                         this.camera.y
@@ -646,11 +665,11 @@ Clarity.prototype.move_player = function () {
             }
         }
     }
-    
+
     if(this.last_tile != tile.id && tile.script) {
         eval(this.current_map.scripts[tile.script]);
     }
-    
+
     this.last_tile = tile.id;
 };
 
@@ -658,44 +677,44 @@ Clarity.prototype.update_player = function () {
 
     /*TURN ON TO TRIGGER!!!
     game.player.colour = "#"+(Math.random()*0xFFFFFF<<0).toString(16);*/
-    
+
     if (this.key.left) {
 7
         if (this.player.vel.x > -this.current_map.vel_limit.x)
             this.player.vel.x -= this.current_map.movement_speed.left;
-        
-        
+
+
     }
 
     if (this.key.up) {
 
         if (this.player.can_jump && this.player.vel.y > -this.current_map.vel_limit.y) {
-            
+
             this.player.vel.y -= this.current_map.movement_speed.jump;
             this.player.can_jump = false;
         }
     }
-    
+
     if (this.key.down) {
-    
-    
+
+
     /*if(this.current_map.data[Math.round((this.player.loc.y) / (this.tile_size))][Math.round((this.player.loc.x) / (this.tile_size))] == 12){
         map.coin_count++;
         console.log(map.coin_count);
     }
-        
+
     map.player.x = (this.player.loc.x) / (this.tile_size);
     map.player.y = (this.player.loc.y) / (this.tile_size);
-        
-    
-    
-        
+
+
+
+
     this.current_map.data[Math.round(map.player.y)][Math.round(map.player.x)] = 1;
     game.load_map(map);  */
     }
 
     if (this.key.right) {
-        
+
 
         if (this.player.vel.x < this.current_map.vel_limit.x)
             this.player.vel.x += this.current_map.movement_speed.left;
@@ -747,52 +766,54 @@ window.requestAnimFrame =
 var canvas = document.getElementById('canvas'),
     ctx = canvas.getContext('2d');
 
-canvas.width = 880;
-canvas.height = 720;
+canvas.width = 44 * Math.round(document.documentElement.clientHeight*(1/60));
+canvas.height = 36 * Math.round(document.documentElement.clientHeight*(1/60));
 
 var game = new Clarity();
     game.set_viewport(canvas.width, canvas.height);
-        
+
     game.load_map(map);
 
     /* Limit the viewport to the confines of the map */
     game.limit_viewport = true;
 
 var Loop = function() {
-  
+
   ctx.fillStyle = '#333';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-  
+
   game.update();
   game.draw(ctx);
-  
+
   window.requestAnimFrame(Loop);
 };
 
 Loop();
-    </script>
 
+    </script>
     <script>
         function sendHighScore(score, username) {
-            var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
+    var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
 
-            function csrfSafeMethod(method) {
-                return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+    function csrfSafeMethod(method) {
+        return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+    }
+    $.ajaxSetup({
+        beforeSend: function(xhr, settings) {
+            if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                xhr.setRequestHeader("X-CSRFToken", csrftoken);
             }
-            $.ajaxSetup({
-                beforeSend: function(xhr, settings) {
-                    if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
-                        xhr.setRequestHeader("X-CSRFToken", csrftoken);
-                    }
-                }
-            });
-            $.post("/play/{{map.title}}/updatescore/", {
-                    score: score,
-                    username: username
-                },
-                function(data, status) {
-                });
         }
+    });
+    $.post("/play/{{map.title}}/updatescore/", {
+            score: score,
+            username: username
+        },
+        function(data, status) {
+        });
+}
+
     </script>
+
     {% csrf_token %}
 </html>
