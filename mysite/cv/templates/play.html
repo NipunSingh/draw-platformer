@@ -11,6 +11,13 @@
 
     <title>{{map.title}} - DrawPlatformer</title>
 
+        <style>
+    body {
+        padding-top: 20px;
+        /* Required padding for .navbar-fixed-top. Remove if using .navbar-static-top. Change if height of navigation changes. */
+    }
+    </style>
+
     <!-- Bootstrap Core CSS -->
     <link href="/static/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
 
@@ -36,19 +43,59 @@
 </head>
 
 <body>
-    <h1>Draw Platformer - {{map.title}}</h1>
-    <p style="font-size: medium; margin-top: 35px;">Coins Collected: <label id="points" style="font-size: large;">0</label></p>
-    <p style="font-size: medium;">Time Elapsed: <label style="font-size:large; color: red;" id="totalSeconds">0</label></p>
-    <p style="font-size: medium; margin-top: 15px;">Highscore: <label id="high_score" style="font-size: large;"> {{high_score}}</label></p>
-    <input type="checkbox" name="un-mute" id="un-mute">
+
+        <!-- Navigation -->
+    <nav class="navbar navbar-inverse navbar-fixed-bottom" role="navigation">
+        <div class="container">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="#">Draw Platformer: {{map.title}}</a>
+            </div>
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav">
+                    <li>
+                        <a href="#">Discover</a>
+                    </li>
+
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+        </div>
+        <!-- /.container -->
+    </nav>
+        <div class="container" style="text-align:center;">
+            <h2>{{map.title}}</h2>
+            <div class="row">
+                <div class="col-xs-3">
+                    <p>Coins collected: <label id="points" style="font-size: large;">0</label></p>
+                </div>
+                <div class="col-xs-3">
+                    <p>Time Elapsed: <label style="font-size:large; color: red;" id="totalSeconds">0</label></p>
+                </div>
+                <div class="col-xs-3">
+                    <p>High Score: <label id="high_score" style="font-size: large;"> {{high_score}}</label></p>
+                </div>
+                <div class="col-xs-3">
+                        <input type="checkbox" name="un-mute" id="un-mute">
     <label for="un-mute" class="unmute">
         <img src="http://upload.wikimedia.org/wikipedia/commons/3/3f/Mute_Icon.svg" alt="Mute_Icon.svg" title="Mute icon" style="width:8%;height:8%;">
     </label>
     <label for="un-mute" class="mute">
         <img src="http://upload.wikimedia.org/wikipedia/commons/2/21/Speaker_Icon.svg" alt="Speaker_Icon.svg" title="Unmute/speaker icon" style="width:8%;height:8%;">
     </label>
-
-    <canvas id="canvas"></canvas>
+                </div>
+            </div>
+            <div class="row">
+                <canvas id="canvas"></canvas>
+            </div>
+    </div>
 
     <script src="/static/js/game_misc.js"></script>
 
