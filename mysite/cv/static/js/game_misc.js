@@ -8,10 +8,12 @@
             if(isPlaying){
                 mainSong.pause();
                 isPlaying = false;
+                un_mute.src = "http://upload.wikimedia.org/wikipedia/commons/3/3f/Mute_Icon.svg";
             }
             else{
                 mainSong.play();
                 isPlaying = true;
+                un_mute.src = "http://upload.wikimedia.org/wikipedia/commons/2/21/Speaker_Icon.svg";
             }
         };
 
