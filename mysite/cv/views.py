@@ -51,7 +51,7 @@ def update_score(request, map_name):
                 username = "Anonymous"
             game_obj.high_score_name = username
             game_obj.save()
-        return HttpResponse(debug_string)
+        return HttpResponse("Succesfully Updated High Score")
     else:
         return HttpResponse("Requires POST request to update scores")
 
