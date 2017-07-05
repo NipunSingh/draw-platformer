@@ -31,30 +31,11 @@
         <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
         <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
     <![endif]-->
-    
-    <style>
-    input#un-mute {
-  display: none;
-}
 
-.unmute img {
-  display: none;
-}
-
-input#un-mute:checked ~ .unmute img {
-  display: initial;
-}
-
-input#un-mute:checked ~ .mute img {
-  display: none;
-}
-    </style>
-    
-
+    <link href="/static/css/audio.css" rel="stylesheet">
 </head>
 
 <body>
-
     <h1>Draw Platformer - {{map.title}}</h1>
     <p style="font-size: medium; margin-top: 35px;">Coins Collected: <label id="points" style="font-size: large;">0</label></p>
     <p style="font-size: medium;">Time Elapsed: <label style="font-size:large; color: red;" id="totalSeconds">0</label></p>
@@ -66,59 +47,10 @@ input#un-mute:checked ~ .mute img {
     <label for="un-mute" class="mute">
         <img src="http://upload.wikimedia.org/wikipedia/commons/2/21/Speaker_Icon.svg" alt="Speaker_Icon.svg" title="Unmute/speaker icon" style="width:8%;height:8%;">
     </label>
-    <div class="header-content-inner">
-        <canvas id="canvas"></canvas>
-    </div>
 
+    <canvas id="canvas"></canvas>
 
-
-
-    <script type="text/javascript">
-        var mainSong = new Audio("/static/underworld.mp3");
-        mainSong.play();
-        var isPlaying = true;
-
-        var un_mute = document.getElementById('un-mute');
-
-        un_mute.onclick = function() {
-            if(isPlaying){
-                mainSong.pause();
-                isPlaying = false;
-            }
-            else{
-                mainSong.play();
-                isPlaying = true;
-            }
-        };
-
-        var minutesLabel = document.getElementById("minutes")
-        var secondsLabel = document.getElementById("seconds");
-        var totalSecondsLabel = document.getElementById("totalSeconds");
-        var totalSeconds = 0;
-        setInterval(setTime, 1000);
-
-        function setTime()
-        {
-            ++totalSeconds;
-            //secondsLabel.innerHTML = pad(totalSeconds%60);
-            //minutesLabel.innerHTML = pad(parseInt(totalSeconds/60));
-            totalSecondsLabel.innerHTML = pad(totalSeconds);
-        }
-
-        function pad(val)
-        {
-            var valString = val + "";
-            if(valString.length < 2)
-            {
-                return "0" + valString;
-            }
-            else
-            {
-                return valString;
-            }
-        }
-    </script>
-
+    <script src="/static/js/game_misc.js"></script>
 
     <!-- jQuery -->
     <script src="/static/vendor/jquery/jquery.min.js"></script>
@@ -791,6 +723,7 @@ var Loop = function() {
 Loop();
 
     </script>
+
     <script>
         function sendHighScore(score, username) {
     var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
@@ -811,7 +744,7 @@ Loop();
         },
         function(data, status) {
         });
-}
+    }
 
     </script>
 
